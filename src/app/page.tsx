@@ -24,7 +24,7 @@ export default function Home() {
             </g>
           </svg>
         </button>
-        <div className="w-full absolute h-[500px] bottom-[100px]">
+        <div className="w-full absolute h-[500px] bottom-[100px] xl:bottom-[50px]">
           <Image
             src="/assets/bg-image-lp-content.png"
             alt="bg-content"
