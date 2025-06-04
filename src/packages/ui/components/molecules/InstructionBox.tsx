@@ -37,7 +37,7 @@ const InstructionBox: FC = () => {
       <div className="absolute top-2 right-2 cursor-pointer">
         {steps !== 0 && (
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.back()}
             className="w-8 h-8 bg-pink-400 hover:bg-pink-500 text-white rounded-full shadow-md flex items-center justify-center text-xl cursor-pointer p-0.5"
           >
             <svg

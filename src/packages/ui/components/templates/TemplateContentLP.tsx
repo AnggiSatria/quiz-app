@@ -19,6 +19,7 @@ export default function TemplateContentLP() {
     setTimeout(() => {
       play();
       setLoading(false);
+      router.push("/input-name");
     }, 500);
   };
 
@@ -43,7 +44,10 @@ export default function TemplateContentLP() {
         </audio>
       )}
       {pathname === "/" && (
-        <button className="absolute right-5 top-5 rounded-full bg-[#e0a6aa] p-2.5 shadow-lg border-b-4 border-[#c27d83] active:translate-y-[2px] transition-transform duration-150 cursor-pointer z-10">
+        <button
+          onClick={() => router.push("/")}
+          className="absolute right-5 top-5 rounded-full bg-[#e0a6aa] p-2.5 shadow-lg border-b-4 border-[#c27d83] active:translate-y-[2px] transition-transform duration-150 cursor-pointer z-10"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -94,7 +98,7 @@ export default function TemplateContentLP() {
       {pathname === "/" && (
         <button
           onClick={() => router.push("/instruction")}
-          className="absolute left-5 bottom-20 rounded-full bg-[#e0a6aa] p-2.5 shadow-lg border-b-4 border-[#c27d83] active:translate-y-[2px] transition-transform duration-150 cursor-pointer z-10"
+          className="absolute left-5 bottom-5 rounded-full bg-[#e0a6aa] p-2.5 shadow-lg border-b-4 border-[#c27d83] active:translate-y-[2px] transition-transform duration-150 cursor-pointer z-10"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
