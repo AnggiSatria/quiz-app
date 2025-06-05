@@ -3,18 +3,32 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Fredoka } from "next/font/google";
+import Image from "next/image";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
-  weight: ["700"], // pakai 700 karena teks kamu tebal
+  weight: ["700"],
 });
 
 export default function TemplateContentChooseGames() {
   const router = useRouter();
   const [name, setName] = useState<string | null>(null);
+  const category = [
+    {
+      label: "NUMERISASI",
+      value: "NUMERISASI",
+      bgColor: "#F8FD89",
+      slug: "numerisasi",
+    },
+    {
+      label: "LITERASI",
+      value: "LITERASI",
+      bgColor: "#DBE1F1",
+      slug: "literasi",
+    },
+  ];
 
   useEffect(() => {
-    // safe access localStorage after client mounts
     const storedName = localStorage.getItem("name");
     setName(storedName);
   }, []);
@@ -58,8 +72,35 @@ export default function TemplateContentChooseGames() {
       </div>
 
       <div className="w-[65%] md:w-1/2 left-1/2 -translate-x-1/2 absolute h-fit top-[190px] xl:top-[150px] inline-flex items-center gap-5 p-5 md:flex-row flex-col">
-        <div className="flex w-full xl:w-1/2 h-[170px] xl:h-[250px] border-4 border-[#d8d3d6] rounded-xl shadow bg-[#f8fd89] opacity-60"></div>
-        <div className="flex w-full xl:w-1/2 h-[170px] xl:h-[250px] border-4 border-[#d8d3d6] rounded-xl shadow"></div>
+        {category?.flatMap((res, idx) => {
+          return (
+            <div
+              key={idx}
+              className={`flex flex-col items-center justify-center w-full xl:w-1/2 h-[170px] xl:h-[250px] border-4 border-[#E0E0E0] rounded-2xl shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-lg cursor-pointer  opacity-80 ${
+                res?.value === "NUMERISASI" ? "bg-[#f8fd89]" : "bg-[#dbe1f1]"
+              }`}
+              onClick={() => router.push(`/level/${res?.slug}`)}
+            >
+              <div className="w-20 h-20 xl:w-24 xl:h-24 mb-3 overflow-hidden rounded-lg">
+                <Image
+                  src={
+                    res?.value === "NUMERISASI"
+                      ? "/assets/Numerisasi.png"
+                      : "/assets/Literasi.png"
+                  }
+                  alt={`${res?.label} Icon`}
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <p className="text-[#6C7A89] text-xl font-semibold tracking-wide">
+                {res?.label}
+              </p>
+            </div>
+          );
+        })}
       </div>
 
       <button

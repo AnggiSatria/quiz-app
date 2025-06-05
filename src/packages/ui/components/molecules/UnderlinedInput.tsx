@@ -22,7 +22,8 @@ export default function UnderlinedInput({
         className="
           w-full text-center text-xl bg-transparent
           focus:outline-none
-          pb-2
+          pb-2  !text-[#0a0a0a]
+        autofill:!text-[#0a0a0a]
         "
       />
       <div className="border-t-2 border-brown-500 w-full mt-1"></div>
