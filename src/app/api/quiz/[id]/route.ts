@@ -1,5 +1,30 @@
-import { prisma } from "@/packages/shared/lib/prisma";
+import { Level, QuizType, ShuffleLevel } from "@/generated/prisma";
+import cloudinary from "@/packages/shared/lib/cloudinary";
+import { prisma, Prisma } from "@/packages/shared/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+
+type AnswerLiterasi = {
+  options: string[];
+  correct: string;
+};
+
+function isAnswerLiterasi(obj: unknown): obj is AnswerLiterasi {
+  if (
+    typeof obj !== "object" ||
+    obj === null ||
+    !("options" in obj) ||
+    !("correct" in obj)
+  ) {
+    return false;
+  }
+
+  const answer = obj as Record<string, unknown>;
+  return (
+    Array.isArray(answer.options) &&
+    answer.options.every((opt) => typeof opt === "string") &&
+    typeof answer.correct === "string"
+  );
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -7,56 +32,84 @@ export async function PATCH(
 ) {
   try {
     const { id } = await context.params;
-    const body = await req.json();
+    const formData = await req.formData();
 
-    const { quiz_type, answer, question, level, url_image, shuffle } = body;
+    const question = formData.get("question")?.toString();
+    const quiz_type = formData.get("quiz_type") as QuizType | null;
+    const level = formData.get("level") as Level | null;
+    const shuffle = formData.get("shuffle") as ShuffleLevel | null;
+    const url_image = formData.get("url_image")?.toString();
+    const file = formData.get("file") as File | null;
 
-    if (!quiz_type || !answer) {
+    const answerString = formData.get("answer")?.toString();
+    if (!quiz_type || !answerString) {
       return NextResponse.json(
-        { error: "quiz_type and answer are required" },
+        { error: "quiz_type and answer required" },
         { status: 400 }
       );
     }
 
-    // Validasi jika quiz_type adalah literasi
+    let parsedAnswer: AnswerLiterasi;
+    try {
+      const parsed = JSON.parse(answerString);
+      if (!isAnswerLiterasi(parsed)) throw new Error("Invalid format");
+      parsedAnswer = parsed;
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid answer format" },
+        { status: 400 }
+      );
+    }
+
+    // Validasi master image
     if (quiz_type === "literasi") {
-      const options = answer.options as string[];
-      const correct = answer.correct as string;
-
-      if (!Array.isArray(options) || typeof correct !== "string") {
-        return NextResponse.json(
-          {
-            error:
-              "Invalid answer format. Must contain options (array of IDs) and correct (ID string).",
-          },
-          { status: 400 }
-        );
-      }
-
-      const uniqueIds = [...new Set([...options, correct])];
-      const validImages = await prisma.masterImage.findMany({
-        where: { id: { in: uniqueIds } },
-        select: { id: true },
+      const ids = [...parsedAnswer.options, parsedAnswer.correct];
+      const count = await prisma.masterImage.count({
+        where: { id: { in: ids } },
       });
-
-      if (validImages.length !== uniqueIds.length) {
+      if (count !== ids.length) {
         return NextResponse.json(
-          { error: "One or more provided master image IDs are invalid." },
+          { error: "Invalid master image IDs" },
           { status: 400 }
         );
       }
     }
 
+    // Upload file jika ada
+    let newUrlImage: string | undefined = url_image;
+    if (file) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const upload = await new Promise<{ secure_url: string }>(
+        (resolve, reject) => {
+          cloudinary.uploader
+            .upload_stream(
+              { resource_type: "image", folder: "quiz-app/images" },
+              (error, result) => {
+                if (error || !result?.secure_url)
+                  return reject(error || new Error("Upload error"));
+                resolve(result as { secure_url: string });
+              }
+            )
+            .end(buffer);
+        }
+      );
+      newUrlImage = upload.secure_url;
+    }
+
+    const updateData: Prisma.QuizUpdateInput = {
+      answer: parsedAnswer as Prisma.InputJsonValue,
+      quiz_type,
+      url_image: newUrlImage,
+    };
+
+    // Hanya set jika tidak null
+    if (question !== null) updateData.question = question;
+    if (level !== null) updateData.level = level;
+    if (shuffle !== null) updateData.shuffle = shuffle;
+
     const updatedQuiz = await prisma.quiz.update({
       where: { id },
-      data: {
-        question,
-        quiz_type,
-        level,
-        shuffle,
-        url_image,
-        answer,
-      },
+      data: updateData,
     });
 
     return NextResponse.json(updatedQuiz);
