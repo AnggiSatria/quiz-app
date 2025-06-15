@@ -6,8 +6,8 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
-  const body = await req.json();
-  const { name } = body;
+  const formData = await req.formData();
+  const name = formData.get("name")?.toString();
 
   if (!name) {
     return NextResponse.json({ error: "Missing name" }, { status: 400 });
