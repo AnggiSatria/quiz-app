@@ -14,10 +14,10 @@ export const useCreateQuiz = () => {
   return { mutations };
 };
 
-export const useReadQuiz = ({ type, level }: IParamsQuiz) => {
+export const useReadQuiz = ({ type, level, shuffle }: IParamsQuiz) => {
   return useQuery({
-    queryKey: ["read-quiz"],
-    queryFn: async () => await getQuiz({ type, level }),
+    queryKey: ["read-quiz", type, level, shuffle],
+    queryFn: async () => await getQuiz({ type, level, shuffle }),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

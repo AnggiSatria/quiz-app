@@ -1,9 +1,8 @@
 import { prisma, Prisma } from "@/packages/shared/lib/prisma";
 import { shuffleArray } from "@/packages/shared/lib";
 import { NextRequest, NextResponse } from "next/server";
-import cloudinary from "@/packages/shared/lib/cloudinary";
-
 import { QuizType, Level, ShuffleLevel } from "@/generated/prisma";
+import cloudinary from "@/packages/shared/lib/cloudinary";
 
 type AnswerLiterasi = {
   options: string[];
@@ -35,46 +34,68 @@ export async function GET(req: NextRequest) {
   const level = searchParams.get("level") as Level | null;
   const shuffle = searchParams.get("shuffle") as ShuffleLevel | null;
 
-  let quizzes = await prisma.quiz.findMany({
-    where:
-      quiz_type && level && shuffle ? { quiz_type, level, shuffle } : undefined,
-  });
+  const filter =
+    quiz_type && level && shuffle ? { quiz_type, level, shuffle } : undefined;
+
+  let quizzes = await prisma.quiz.findMany({ where: filter });
 
   if (quiz_type === "literasi") {
-    const allImageIds = quizzes.flatMap((quiz) => {
-      const rawAnswer = quiz.answer as Record<string, unknown>;
+    // 1. Ambil semua ID gambar dari options dan correct
+    const allAnswerImageIds = quizzes.flatMap((quiz) => {
+      const rawAnswer = quiz.answer as unknown;
       if (!isAnswerLiterasi(rawAnswer)) {
         throw new Error("Invalid answer format in database for literasi quiz");
       }
       return [...rawAnswer.options, rawAnswer.correct];
     });
 
-    const uniqueImageIds = [...new Set(allImageIds)];
+    // 2. Ambil semua ID gambar dari kolom question
+    const allQuestionImageIds = quizzes.map((quiz) => quiz.question);
 
-    const images = await prisma.masterImage.findMany({
-      where: { id: { in: uniqueImageIds } },
-    });
+    const uniqueImageIds = [...new Set(allAnswerImageIds)];
+    const uniqueQuestionIds = [...new Set(allQuestionImageIds)];
+
+    // 3. Ambil data gambar dari tabel masterImage
+    const [answerImages, questionImages] = await Promise.all([
+      prisma.masterImage.findMany({ where: { id: { in: uniqueImageIds } } }),
+      prisma.masterImage.findMany({ where: { id: { in: uniqueQuestionIds } } }),
+    ]);
 
     const imageMap = Object.fromEntries(
-      images.map(({ createdAt, ...img }) => [img.id, img, createdAt])
+      answerImages.map((img) => [img.id, img])
     );
 
-    quizzes = quizzes.map((quiz) => {
-      const rawAnswer = quiz.answer as Record<string, unknown>;
+    const questionImageMap = Object.fromEntries(
+      questionImages.map((img) => [img.id, img])
+    );
+
+    // 4. Ubah bentuk `quizzes` agar cocok dengan kebutuhan FE
+    const transformed = quizzes.map((quiz) => {
+      const rawAnswer = quiz.answer as unknown;
       if (!isAnswerLiterasi(rawAnswer)) {
         throw new Error("Invalid answer format in database for literasi quiz");
       }
 
       return {
-        ...quiz,
+        id: quiz.id,
+        quiz_type: quiz.quiz_type,
+        level: quiz.level,
+        shuffle: quiz.shuffle,
+        url_image: quiz.url_image,
+        question: questionImageMap[quiz.question] ?? quiz.question,
         answer: {
-          options: rawAnswer.options.map((id: string) => imageMap[id]),
+          options: rawAnswer.options.map((id) => imageMap[id]),
           correct: imageMap[rawAnswer.correct],
         },
       };
     });
+
+    return NextResponse.json(
+      quiz_type && level && shuffle ? shuffleArray(transformed) : transformed
+    );
   }
 
+  // Kalau bukan literasi, langsung return tanpa modifikasi
   return NextResponse.json(
     quiz_type && level && shuffle ? shuffleArray(quizzes) : quizzes
   );

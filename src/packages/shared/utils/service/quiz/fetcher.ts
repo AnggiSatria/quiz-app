@@ -5,9 +5,9 @@ import {
 } from "@/packages/shared/interfaces/quiz.interface";
 import axios from "axios";
 
-export const getQuiz = async ({ type, level }: IParamsQuiz) => {
+export const getQuiz = async ({ type, level, shuffle }: IParamsQuiz) => {
   const response = await axios.get(
-    `/api/quiz?quiz_type=${type}&level=${level}`
+    `/api/quiz?quiz_type=${type}&level=${level}&shuffle=${shuffle}`
   );
 
   return response.data as IResponseQuiz[];
