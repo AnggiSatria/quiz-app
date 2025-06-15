@@ -1,4 +1,4 @@
-import TemplateContentChooseGames from "@/packages/ui/components/templates/TemplateContentChooseGames";
+import TemplateContentChooseGames from "../../packages/shared/ui/components/templates/TemplateContentChooseGames";
 import React from "react";
 
 export default function page() {

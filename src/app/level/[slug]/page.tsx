@@ -1,4 +1,4 @@
-import TemplateContentLevel from "@/packages/ui/components/templates/TemplateContentLevel";
+import TemplateContentLevel from "../../../packages/shared/ui/components/templates/TemplateContentLevel";
 import React from "react";
 
 export default function page() {

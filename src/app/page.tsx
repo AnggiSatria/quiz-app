@@ -1,5 +1,5 @@
 "use client";
-import TemplateContentLP from "@/packages/ui/components/templates/TemplateContentLP";
+import TemplateContentLP from "@/packages/shared/ui/components/templates/TemplateContentLP";
 
 export default function Home() {
   return (

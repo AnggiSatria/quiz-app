@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 
@@ -86,6 +86,26 @@ export default function NumericSection() {
     setTimeLeft(60);
   }, [category]);
 
+  const handleAnswer = (selected: string) => {
+    saveAnswer(selected);
+    goToNextQuestion();
+  };
+
+  const saveAnswer = useCallback((answer: string) => {
+    setAnswers((prev) => [...prev, answer]);
+  }, []);
+
+  const goToNextQuestion = useCallback(() => {
+    const nextIndex = questionIndex + 1;
+    if (nextIndex < questionSet.length) {
+      setQuestionIndex(nextIndex);
+      setQuestionData(questionSet[nextIndex]);
+      setTimeLeft(60);
+    } else {
+      alert("✅ Semua soal selesai dijawab!");
+    }
+  }, [questionIndex, questionSet]);
+
   useEffect(() => {
     if (!questionData) return;
 
@@ -101,27 +121,7 @@ export default function NumericSection() {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [timeLeft, questionData]);
-
-  const handleAnswer = (selected: string) => {
-    saveAnswer(selected);
-    goToNextQuestion();
-  };
-
-  const saveAnswer = (answer: string) => {
-    setAnswers((prev) => [...prev, answer]);
-  };
-
-  const goToNextQuestion = () => {
-    const nextIndex = questionIndex + 1;
-    if (nextIndex < questionSet.length) {
-      setQuestionIndex(nextIndex);
-      setQuestionData(questionSet[nextIndex]);
-      setTimeLeft(60);
-    } else {
-      alert("✅ Semua soal selesai dijawab!");
-    }
-  };
+  }, [timeLeft, questionData, goToNextQuestion, saveAnswer]);
 
   function isLiteracyQuestion(
     question: LiteracyQuestion | NumeracyQuestion | null

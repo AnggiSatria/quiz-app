@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_PRODUCTION")
+}
+
+enum QuizType {
+  numerisasi
+  literasi
+}
+
+enum Level {
+  ONE
+  TWO
+  THREE
+  FOUR
+  FIVE
+}
+
+enum ShuffleLevel {
+  ONE
+  TWO
+  THREE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  score     Int
+  quiz_type QuizType
+}
+
+model Quiz {
+  id           String    @id @default(uuid())
+  question     String
+  quiz_type    QuizType
+  level        Level
+  shuffle      ShuffleLevel 
+  answer       Json      // format: { options: [string], correct: string }
+  url_image    String?   // Tambahan: opsional string
+}
+
+model Video {
+  id         String   @id @default(uuid())
+  url        String
+  video_type QuizType
+}
+
+model MasterImage {
+  id    String @id @default(uuid())
+  name  String
+  url   String
+  createdAt DateTime @default(now())
+}

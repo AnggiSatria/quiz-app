@@ -1,4 +1,4 @@
-import TemplateContentGame from "@/packages/ui/components/templates/TemplateContentGame";
+import TemplateContentGame from "../../../../packages/shared/ui/components/templates/TemplateContentGame";
 import React from "react";
 
 export default function page() {

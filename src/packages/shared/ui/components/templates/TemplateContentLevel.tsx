@@ -51,6 +51,8 @@ export default function TemplateContentLevel() {
   const { slug } = useParams();
   const [isClient, setIsClient] = useState(false);
 
+  console.log(slug);
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -78,9 +80,17 @@ export default function TemplateContentLevel() {
 
       <div className="inline-flex absolute top-[50px] xl:top-[20px] w-1/2 xl:w-[600px] left-1/2 -translate-x-1/2 h-fit xl:h-[200px]">
         <CurvedText />
-        <div className="inline-flex w-[81px] justify-center absolute left-1/2 -translate-x-1/2 top-9 z-10">
+        <div
+          className={`inline-flex w-[81px] justify-center absolute left-1/2 -translate-x-1/2 z-10 ${
+            slug === "numerisasi" ? "top-9" : "top-8"
+          }`}
+        >
           <Image
-            src="/assets/icon-numeric.png"
+            src={
+              slug === "numerisasi"
+                ? `/assets/icon-numeric.png`
+                : "/assets/abcd.png"
+            }
             alt="icon-numeric"
             className="object-cover"
             width={81}
@@ -98,10 +108,10 @@ export default function TemplateContentLevel() {
         {level?.map((res, idx) => (
           <div
             key={idx}
-            className="flex items-center justify-center h-[200px] md:h-full bg-white rounded-md shadow transition-transform duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg cursor-pointer"
+            className="flex items-center justify-center h-[200px] md:h-full bg-white rounded-4xl shadow transition-transform duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg cursor-pointer xl:!bg-cover"
             style={{
               backgroundImage: `url("/assets/level_${idx + 1}.png")`,
-              backgroundSize: "cover",
+              backgroundSize: "100% 100%",
               backgroundPosition: "center",
             }}
             onClick={() => router.push(`/game/${slug}/${res}`)}

@@ -1,4 +1,4 @@
-import TemplateContentInput from "@/packages/ui/components/templates/TemplateContentInput";
+import TemplateContentInput from "../../packages/shared/ui/components/templates/TemplateContentInput";
 import React from "react";
 
 export default function page() {
