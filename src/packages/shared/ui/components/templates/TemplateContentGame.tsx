@@ -30,7 +30,21 @@ export default function TemplateContentGame() {
             : "w-[95%] md:w-[80%] xl:w-[700px]"
         }`}
       >
-        <CurvedText label={`Level ${level}`} />
+        <CurvedText
+          label={`Level ${
+            level === "ONE"
+              ? 1
+              : level === "TWO"
+              ? 2
+              : level === "THREE"
+              ? 3
+              : level === "FOUR"
+              ? 4
+              : level === "FIVE"
+              ? 5
+              : null
+          }`}
+        />
         <NumericSection />
       </div>
 

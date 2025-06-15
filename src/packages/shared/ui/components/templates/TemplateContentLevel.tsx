@@ -51,8 +51,6 @@ export default function TemplateContentLevel() {
   const { slug } = useParams();
   const [isClient, setIsClient] = useState(false);
 
-  console.log(slug);
-
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -67,6 +65,11 @@ export default function TemplateContentLevel() {
 
   const handleNext = () => {
     if (currentIndex < level.length - 1) setCurrentIndex(currentIndex + 1);
+  };
+
+  const getRandomShuffle = () => {
+    const values = ["ONE", "TWO", "THREE"];
+    return values[Math.floor(Math.random() * values.length)];
   };
 
   return (
@@ -114,7 +117,23 @@ export default function TemplateContentLevel() {
               backgroundSize: "100% 100%",
               backgroundPosition: "center",
             }}
-            onClick={() => router.push(`/game/${slug}/${res}`)}
+            onClick={() =>
+              router.push(
+                `/game/${slug}/${
+                  res === 1
+                    ? "ONE"
+                    : res === 2
+                    ? "TWO"
+                    : res === 3
+                    ? "THREE"
+                    : res === 4
+                    ? "FOUR"
+                    : res === 5
+                    ? "FIVE"
+                    : null
+                }?shuffle=${getRandomShuffle()}`
+              )
+            }
           ></div>
         ))}
       </div>
@@ -156,7 +175,23 @@ export default function TemplateContentLevel() {
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
-            onClick={() => router.push(`/game/${slug}/${currentIndex + 1}`)}
+            onClick={() =>
+              router.push(
+                `/game/${slug}/${
+                  currentIndex + 1 === 1
+                    ? "ONE"
+                    : currentIndex + 1 === 2
+                    ? "TWO"
+                    : currentIndex + 1 === 3
+                    ? "THREE"
+                    : currentIndex + 1 === 4
+                    ? "FOUR"
+                    : currentIndex + 1 === 5
+                    ? "FIVE"
+                    : null
+                }?shuffle=${getRandomShuffle()}`
+              )
+            }
           ></div>
 
           {/* Next Button */}
