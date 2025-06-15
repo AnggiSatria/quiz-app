@@ -28,7 +28,7 @@ export const patchQuiz = async ({
   payload: IRequestUpdateQuiz;
   id: string;
 }) => {
-  return await axios.patch(`/api/quiz?id=${id}`, payload, {
+  return await axios.patch(`/api/quiz/${id}`, payload, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

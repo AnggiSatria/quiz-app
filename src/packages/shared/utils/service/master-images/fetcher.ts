@@ -25,7 +25,7 @@ export const patchMasterImage = async ({
   payload: IRequestMasterImage;
   id: string;
 }) => {
-  return await axios.patch(`/api/master-image?id=${id}`, payload, {
+  return await axios.patch(`/api/master-image/${id}`, payload, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
