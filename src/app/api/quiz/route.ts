@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   const filter =
     quiz_type && level && shuffle ? { quiz_type, level, shuffle } : undefined;
 
-  let quizzes = await prisma.quiz.findMany({ where: filter });
+  const quizzes = await prisma.quiz.findMany({ where: filter });
 
   if (quiz_type === "literasi") {
     // 1. Ambil semua ID gambar dari options dan correct
