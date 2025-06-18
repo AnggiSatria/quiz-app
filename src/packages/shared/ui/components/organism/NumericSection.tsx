@@ -14,100 +14,83 @@ export default function NumericSection({ questions }: Props) {
   const searchParams = useSearchParams();
   const shuffle = searchParams.get("shuffle") || "ONE";
   const router = useRouter();
+
   const [questionIndex, setQuestionIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
   const [answers, setAnswers] = useState<string[]>([]);
-  const [results, setResults] = useState<boolean[]>([]);
-  const [score, setScore] = useState<number>(0);
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
   const [hasFinished, setHasFinished] = useState(false);
 
   const currentQuestion = questions?.[questionIndex] || null;
-
-  console.log(currentQuestion);
+  const storageKey = `quiz-answers-${category}-${shuffle}`;
 
   const handleAnswer = (selected: string) => {
     saveAnswer(selected);
-    goToNextQuestion();
   };
-
-  const goToNextQuestion = useCallback(() => {
-    if (hasFinished) return;
-
-    const nextIndex = questionIndex + 1;
-    if (nextIndex < (questions?.length || 0)) {
-      setQuestionIndex(nextIndex);
-      setTimeLeft(60);
-    } else {
-      setHasFinished(true); // ✅ set ini agar tidak dipanggil lagi
-
-      router.push(
-        `${
-          level === "ONE"
-            ? `/game/${category}/TWO?shuffle=${shuffle}`
-            : level === "TWO"
-            ? `/game/${category}/THREE?shuffle=${shuffle}`
-            : level === "THREE"
-            ? `/game/${category}/FOUR?shuffle=${shuffle}`
-            : level === "FOUR"
-            ? `/game/${category}/FIVE?shuffle=${shuffle}`
-            : level === "FIVE"
-            ? `/game/${category}/finish?shuffle=${shuffle}`
-            : ``
-        }`
-      );
-
-      console.log("Jawaban:", answers);
-      console.log("Hasil:", results);
-    }
-  }, [
-    questionIndex,
-    questions,
-    answers,
-    results,
-    score,
-    level,
-    category,
-    shuffle,
-    hasFinished,
-  ]);
 
   const saveAnswer = useCallback(
     (answer: string) => {
-      if (hasFinished) return;
-      const correctAnswer = currentQuestion?.answer?.correct;
+      if (hasFinished || !currentQuestion) return;
 
-      let isCorrect = false;
-      if (typeof correctAnswer === "string") {
-        isCorrect = answer === correctAnswer;
-      } else if (typeof correctAnswer === "object" && correctAnswer !== null) {
-        isCorrect = answer === correctAnswer.id;
-      }
+      const correct = currentQuestion?.answer?.correct;
+      const correctId =
+        typeof correct === "string" ? correct : correct?.id ?? "";
 
-      setAnswers((prev) => [...prev, answer]);
-      setResults((prev) => [...prev, isCorrect]);
+      const selectedId = answer;
+      const isCorrect = selectedId === correctId;
+      const point = isCorrect ? 1 : 0;
 
-      if (isCorrect) {
-        setScore((prev) => prev + 1);
-      }
+      setAnswers((prev) => [...prev, selectedId]);
 
-      setShowCorrectAnswer(true); // ⬅️ Tampilkan jawaban dulu
+      // Simpan ke localStorage
+      const prev = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      const newEntry = {
+        questionId: currentQuestion.id,
+        userAnswer: selectedId,
+        isCorrect,
+        point,
+      };
+      localStorage.setItem(storageKey, JSON.stringify([...prev, newEntry]));
 
-      // ⏱️ Setelah 2 detik baru lanjut ke soal berikutnya
+      setShowCorrectAnswer(true);
+
       setTimeout(() => {
         setShowCorrectAnswer(false);
         goToNextQuestion();
       }, 2000);
     },
-    [currentQuestion, goToNextQuestion]
+    [currentQuestion, hasFinished, shuffle, category]
   );
+
+  const goToNextQuestion = useCallback(() => {
+    if (hasFinished) return;
+
+    const nextIndex = questionIndex + 1;
+    const isLast = nextIndex >= questions.length;
+
+    if (isLast) {
+      setHasFinished(true);
+
+      // Navigasi ke level berikutnya
+      const nextLevelMap: Record<string, string> = {
+        ONE: "TWO",
+        TWO: "THREE",
+        THREE: "FOUR",
+        FOUR: "FIVE",
+        FIVE: "finish",
+      };
+      const nextLevel = nextLevelMap[level as string] || "finish";
+
+      router.push(`/game/${category}/${nextLevel}?shuffle=${shuffle}`);
+    } else {
+      setQuestionIndex(nextIndex);
+      setTimeLeft(60);
+    }
+  }, [questionIndex, questions.length, hasFinished, level, category, shuffle]);
 
   useEffect(() => {
     if (timeLeft === 0 && currentQuestion) {
-      // alert("⏰ Waktu habis!");
       saveAnswer("Waktu habis");
-      goToNextQuestion();
-      return;
     }
 
     const timer = setTimeout(() => {
@@ -115,7 +98,7 @@ export default function NumericSection({ questions }: Props) {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [timeLeft, currentQuestion, saveAnswer, goToNextQuestion]);
+  }, [timeLeft, currentQuestion, saveAnswer]);
 
   const isLiteracy = currentQuestion?.quiz_type === "literasi";
 
@@ -149,7 +132,7 @@ export default function NumericSection({ questions }: Props) {
           <span>Sisa waktu: {timeLeft}s</span>
         </div>
 
-        <h2 className="flex w-full h-fit rounded-xl text-[#0a0a0a] bg-[#96adfc] text-center pt-3 px-5 pb-5 font-bold text-2xl justify-center items-center">
+        <h2 className="rounded-xl text-[#0a0a0a] bg-[#96adfc] text-center pt-3 px-5 pb-5 font-bold text-2xl">
           {typeof currentQuestion?.question === "string"
             ? currentQuestion.question
             : currentQuestion?.question.name}
@@ -162,26 +145,26 @@ export default function NumericSection({ questions }: Props) {
               const optLabel = typeof opt === "string" ? opt : opt.url;
               console.log(optLabel);
 
-              const isCorrect =
-                typeof currentQuestion.answer.correct === "string"
-                  ? optId === currentQuestion.answer.correct
-                  : optId === currentQuestion.answer.correct?.id;
+              const correct = currentQuestion.answer.correct;
+              const correctId =
+                typeof correct === "string" ? correct : correct?.id ?? "";
 
-              const isSelected = answers[questionIndex] === optId;
+              const selectedAnswer = answers[questionIndex];
+              const isCorrect = optId === correctId;
+              const isSelected = selectedAnswer === optId;
+
+              const correctClass =
+                showCorrectAnswer && isCorrect
+                  ? "bg-green-200 border-green-500"
+                  : showCorrectAnswer && isSelected && !isCorrect
+                  ? "bg-red-200 border-red-500"
+                  : "";
 
               return (
                 <button
                   key={idx}
                   onClick={() => !showCorrectAnswer && handleAnswer(optId)}
-                  className={`border px-4 py-2 rounded cursor-pointer${
-                    showCorrectAnswer && isCorrect
-                      ? "bg-green-200 border-green-500"
-                      : ""
-                  }${
-                    showCorrectAnswer && isSelected && !isCorrect
-                      ? "bg-red-200 border-red-500"
-                      : ""
-                  }${
+                  className={`border px-4 py-2 rounded cursor-pointer ${correctClass} ${
                     showCorrectAnswer
                       ? "pointer-events-none"
                       : "hover:bg-gray-100"

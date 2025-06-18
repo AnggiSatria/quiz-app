@@ -7,6 +7,7 @@ import CurvedText from "../atoms/CurvedText";
 import NumericSection from "../organism/NumericSection";
 import { PacmanLoader } from "react-spinners";
 import { useReadQuiz } from "@/packages/shared/utils/service/quiz";
+import FinishSection from "../organism/FinishSection";
 
 const override: CSSProperties = {
   display: "block",
@@ -47,11 +48,18 @@ export default function TemplateContentGame() {
 
       {!isLoading && (
         <div className="w-full">
-          {isClient && (
+          {isClient && level !== "finish" && (
             <audio autoPlay loop>
               <source src={`/sounds/level_${level}.mp3`} type="audio/mpeg" />
             </audio>
           )}
+
+          {isClient && level === "finish" && (
+            <audio autoPlay>
+              <source src={`/sounds/stage-clear.mp3`} type="audio/mpeg" />
+            </audio>
+          )}
+
           <ButtonLeave />
 
           <div
@@ -62,21 +70,31 @@ export default function TemplateContentGame() {
             }`}
           >
             <CurvedText
-              label={`Level ${
+              label={`${
                 level === "ONE"
-                  ? 1
+                  ? "Level 1"
                   : level === "TWO"
-                  ? 2
+                  ? "Level 2"
                   : level === "THREE"
-                  ? 3
+                  ? "Level 3"
                   : level === "FOUR"
-                  ? 4
+                  ? "Level 4"
                   : level === "FIVE"
-                  ? 5
-                  : null
+                  ? "Level 5"
+                  : "FINISH"
               }`}
             />
-            <NumericSection questions={questions || []} />
+
+            {level !== "finish" && (
+              <NumericSection questions={questions || []} />
+            )}
+
+            {level === "finish" && (
+              <FinishSection
+                category={category as "numerisasi" | "literasi"}
+                shuffle={shuffle}
+              />
+            )}
           </div>
 
           <ButtonNavigateInstruction />
